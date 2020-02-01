@@ -129,6 +129,9 @@ void setup() {
   //Print the Pins that triggered to wake up.
   print_GPIO_wake_up();
 
+  getData();
+  pushDataV();
+
   //Multi pins
   esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
 
