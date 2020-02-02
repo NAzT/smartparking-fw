@@ -1,17 +1,17 @@
 #include <Arduino.h> 
 
 /* BOARD INFO */
-String DEVICE_NAME      = "DEVICE-001"; 
+String DEVICE_NAME      = "test01"; 
 
 /* WIFI INFO */ 
-String WIFI_SSID        = "CMMC_Sinet_2.4G";
-String WIFI_PASSWORD    = "zxc12345";
+ String WIFI_SSID        = "CMMC_Sinet_2.4G";
+ String WIFI_PASSWORD    = "zxc12345";
 
-//String WIFI_SSID        = "tong";
-//String WIFI_PASSWORD    = "espertap";
+//String WIFI_SSID        = "GG";
+//String WIFI_PASSWORD    = "gasprp9876";
 
 /* MQTT INFO */ 
-String MQTT_HOST        = "mqtt.cmmc.io";
+String MQTT_HOST        = "mosquitto.jordsabuy.com";
 String MQTT_USERNAME    = "";
 String MQTT_PASSWORD    = "";
 String MQTT_CLIENT_ID   = "";

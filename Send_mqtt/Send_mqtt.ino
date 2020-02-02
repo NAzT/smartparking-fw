@@ -86,12 +86,12 @@ void convertINPUT () {
     //Serial.println(readINPUT);
 
     if (readINPUT == 'V') {
-      //Serial.println("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV");
+     // Serial.println("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV");
       checkINPUT = 1;
       Input = " ";
     }
     if (readINPUT == 'U') {
-      //Serial.println("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU");
+     // Serial.println("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU");
       checkINPUT = 2;
       Input = " ";
     }

@@ -51,7 +51,9 @@ void init_mqtt()
     // FORMAT
     // d:quickstart:<type-id>:<device-id>
     //config->clientId  = String("d:quickstart:esp8266meetup:") + macAddr;
-    config->topicPub  = MQTT_PREFIX + String(myName) + String("/status");
+
+    //config->topicPub  = MQTT_PREFIX + String(myName) + String("/status");
+    config->topicPub  = "PARK";
   });
 
   mqtt->on_after_prepare_configuration([&](MqttConnector::Config config) -> void {

@@ -18,6 +18,8 @@ extern String convert = " ", Input = " ";
 extern int checkINPUT = 0, distance = 0;
 extern unsigned long previousMillis = 0;
 
+extern int openStatus=0;
+
 void register_receive_hooks() {
   mqtt->on_subscribe([&](MQTT::Subscribe * sub) -> void {
     Serial.printf("myName = %s \r\n", myName);
@@ -59,11 +61,15 @@ void register_receive_hooks() {
         
       }
       else if (payload == "UP") {
+//        Serial.println("Open");
         digitalWrite(13, HIGH);
+        openStatus=1;
         delay(200);
       }
       else if (payload == "DOWN") {
+//         Serial.println("Close");
         digitalWrite(13, LOW);
+        openStatus=0;
         delay(200);
       }
     }

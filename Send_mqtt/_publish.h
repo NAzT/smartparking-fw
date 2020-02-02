@@ -14,7 +14,7 @@ extern int PUBLISH_EVERY;
 
 extern float voltage;
 extern int distance;
-
+extern int openStatus;
 void register_publish_hooks() {
   strcpy(myName, DEVICE_NAME.c_str());
   mqtt->on_prepare_data_once([&](void) {
@@ -32,6 +32,7 @@ void register_publish_hooks() {
     data["millis"] = millis();
     data["Voltage"] = voltage;
     data["Distance"] = distance;
+    data["OpenStatus"] = openStatus;
   }, PUBLISH_EVERY);
   mqtt->on_after_prepare_data([&](JsonObject * root) {
     /**************
