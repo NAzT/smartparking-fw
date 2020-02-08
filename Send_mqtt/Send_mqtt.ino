@@ -107,6 +107,7 @@ void convertINPUT () {
 
   if (checkINPUT == 1) {
     voltage = Input.toFloat();
+     distance = Input.toInt();
   }
   else if (checkINPUT == 2) {
     distance = Input.toInt();

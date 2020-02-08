@@ -35,6 +35,7 @@ void register_receive_hooks() {
     Serial.printf("topic: %s\r\n", topic.c_str());
     Serial.printf("cmd: %s\r\n", cmd.c_str());
     Serial.printf("payload: %s\r\n", payload.c_str());
+
     digitalWrite(14, HIGH);
     if (cmd == "$/command") {
       Serial.println("now we in CMD");
@@ -61,13 +62,13 @@ void register_receive_hooks() {
         
       }
       else if (payload == "UP") {
-//        Serial.println("Open");
+        Serial.println("Open Gate");
         digitalWrite(13, HIGH);
         openStatus=1;
         delay(200);
       }
       else if (payload == "DOWN") {
-//         Serial.println("Close");
+        Serial.println("Close Gate");
         digitalWrite(13, LOW);
         openStatus=0;
         delay(200);
