@@ -22,6 +22,7 @@ RTC_DATA_ATTR int bootCount = 0;
 #define trigPin 25
 int duration, distance;
 int count = 0, countLoop = 0;
+int alertCount = 0;
 //////////////////////////////////
 
 ///// Moter //////////////////////
@@ -89,6 +90,12 @@ void print_GPIO_wake_up() {
 }
 
 void setup() {
+  //Print the wakeup reason for ESP32
+  print_wakeup_reason();
+
+  //Print the Pins that triggered to wake up.
+  print_GPIO_wake_up();
+  
   //Serial config
   Serial.begin(115200);
   Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
@@ -122,12 +129,6 @@ void setup() {
   //Increment boot number and print it every reboot
   ++bootCount;
   Serial.println("Boot number: " + String(bootCount));
-
-  //Print the wakeup reason for ESP32
-  print_wakeup_reason();
-
-  //Print the Pins that triggered to wake up.
-  print_GPIO_wake_up();
   
   getData();
   pushDataV();
@@ -200,8 +201,11 @@ void loop() {
 
 void wait_command () {
   if (triggeredPin == 2) {
+    
     getData();
-
+    pinMode(14, OUTPUT);
+    digitalWrite(14, HIGH);
+    
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillis >= 500) {
       previousMillis = currentMillis;
@@ -211,6 +215,12 @@ void wait_command () {
     if (currentMillis - previousMillis >= 1000) {
       previousMillis = currentMillis;
       digitalWrite(22, LOW);
+      alertCount++;
+    }
+    if (alertCount == 2) {
+      digitalWrite(14, LOW);
+      pinMode(14, INPUT);
+      Goto_sleep_now();
     }
   } else if (triggeredPin == 15) {
     unsigned long currentMillis = millis();
@@ -332,5 +342,7 @@ void getWUL () {
 void Goto_sleep_now () {
   //Go to sleep now
   Serial.println("Going to sleep now");
+  digitalWrite(14, LOW);
+  pinMode(14, INPUT);
   esp_deep_sleep_start();
 }
