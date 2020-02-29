@@ -13,7 +13,7 @@ extern String DEVICE_NAME;
 extern int PUBLISH_EVERY;
 
 extern float voltage;
-extern int distance;
+extern int distance, PLState;
 
 void register_publish_hooks() {
   strcpy(myName, DEVICE_NAME.c_str());
@@ -32,6 +32,7 @@ void register_publish_hooks() {
     data["millis"] = millis();
     data["Voltage"] = voltage;
     data["Distance"] = distance;
+    data["State"] = PLState;
   }, PUBLISH_EVERY);
   mqtt->on_after_prepare_data([&](JsonObject * root) {
     /**************
@@ -42,11 +43,11 @@ void register_publish_hooks() {
   });
 
   mqtt->on_published([&](const MQTT::Publish & pub) {
-      Serial.println("Published.");
+//      Serial.println("Published.");
   });
 }
 
 static void readSensor() {
-  // perform reading sensor 
-  Serial.println("Perform reading sensor...");
+//  perform reading sensor 
+//  Serial.println("Perform reading sensor...");
 }

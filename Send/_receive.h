@@ -10,15 +10,16 @@ extern int relayPin;
 extern int relayPinState;
 extern char myName[];
 
-extern int LED_PIN;
+unsigned long previousMillisloop = 0;
 
-extern float voltage = 0;
-extern char DATA;
-extern String convert = " ", Input = " ";
-extern int checkINPUT = 0, distance = 0;
-extern unsigned long previousMillis = 0;
+void ShowState () {
+  Serial.println("Interrupt triggered");
+  digitalWrite(32, HIGH);
+  detachInterrupt(25);
+}
 
 void register_receive_hooks() {
+  
   mqtt->on_subscribe([&](MQTT::Subscribe * sub) -> void {
     Serial.printf("myName = %s \r\n", myName);
     sub->add_topic(MQTT_PREFIX + myName + "/$/+");
@@ -30,41 +31,39 @@ void register_receive_hooks() {
   mqtt->on_message([&](const MQTT::Publish & pub) { });
 
   mqtt->on_after_message_arrived([&](String topic, String cmd, String payload) {
-    Serial.printf("topic: %s\r\n", topic.c_str());
-    Serial.printf("cmd: %s\r\n", cmd.c_str());
+//    Serial.printf("topic: %s\r\n", topic.c_str());
+//    Serial.printf("cmd: %s\r\n", cmd.c_str());
     Serial.printf("payload: %s\r\n", payload.c_str());
-    digitalWrite(14, HIGH);
+    
     if (cmd == "$/command") {
-      Serial.println("now we in CMD");
       if (payload == "W") {
-        Serial.println("Just wake up");
-        Input = " ";
-        checkINPUT = 0;
-      }
-      if (payload == "V") {
-        Serial.println("now we in read Voltage");
-        Serial2.println('V');
-        Input = " ";
-        checkINPUT = 0;
-      }
-      else if (payload == "U") {
-        Serial.println("now we in read Distance");
-        Serial2.println('U');
-        Input = " ";
-        checkINPUT = 0;
+        digitalWrite(14, HIGH);
+        delay(100);
       }
       else if (payload == "S") {
-        Serial.println("now we in go to Sleep");
         Serial2.println('S');
-        
+        digitalWrite(32, LOW);
+//        digitalWrite(33, LOW);
       }
       else if (payload == "UP") {
+        detachInterrupt(25);
         digitalWrite(13, HIGH);
-        delay(200);
+        digitalWrite(32, LOW);
+//        digitalWrite(33, LOW);
+        zxcv = 0;
+        previousMillis2 = millis();
+        digitalWrite(14, HIGH);
+        delay(100);
       }
       else if (payload == "DOWN") {
+        detachInterrupt(25);
         digitalWrite(13, LOW);
-        delay(200);
+        digitalWrite(32, LOW);
+//        digitalWrite(33, LOW);
+        zxcv = 0;
+        previousMillis2 = millis();
+        digitalWrite(14, HIGH);
+        delay(100);
       }
     }
     else if (cmd == "$/reboot") {
