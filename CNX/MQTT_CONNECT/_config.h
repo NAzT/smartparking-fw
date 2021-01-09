@@ -4,10 +4,10 @@
 String DEVICE_NAME      = "DEVICE-TEST"; 
 
 /* WIFI INFO */ 
-String WIFI_SSID        = "CMMC_Sinet_2.4G";
+String WIFI_SSID        = "CMMC_3BB_2.4G";
 String WIFI_PASSWORD    = "zxc12345";
 /* MQTT INFO */ 
-String MQTT_HOST        = "mqtt.cmmc.io";
+String MQTT_HOST        = "broker.hivemq.com";
 String MQTT_USERNAME    = "";
 String MQTT_PASSWORD    = "";
 String MQTT_CLIENT_ID   = "";

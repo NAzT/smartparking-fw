@@ -84,9 +84,9 @@ void convertINPUT () {
   if (Serial2.available() > 0) {
     if (Serial2.read() == 'V') {
       readINPUT = Serial2.readString();
-//      Serial.println(readINPUT);
+      //      Serial.println(readINPUT);
       INDEX = readINPUT.indexOf('>');
-//      Serial.println(INDEX);
+      //      Serial.println(INDEX);
     }
   }
   String subdonevol = readINPUT.substring(0, 4);
@@ -109,7 +109,7 @@ void convertINPUT () {
     String subdonestate = readINPUT.substring(9);
     PLState = subdonestate.toInt();
   }
-  
+
   if (voltage > 0.00) {
     Serial.print("Your Voltage : ");
     Serial.print(voltage);
