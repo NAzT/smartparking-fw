@@ -22,7 +22,6 @@ RTC_DATA_ATTR int bootCount = 0;
 #define trigPin 25
 int duration, distance;
 int count = 0, countLoop = 0;
-int TimeoutBZ = 0;
 //////////////////////////////////
 
 ///// Moter //////////////////////
@@ -30,15 +29,13 @@ int se_a;
 int se_a_s;
 int output_A;
 int GPIO14;
-int state = 0;
-int PLState = 1;
+int state;
 //////////////////////////////////
 
 char readChar;
-float VP, checkVolt;
+float VP;
 int triggeredPin;
-unsigned long previousMillis = 0, previousMillisCount = 0;
-unsigned long previousMillisBZ = 0, previousMillisBZ02 = 0, previousMillisBZ03 = 0;
+unsigned long previousMillis = 0;
 
 void print_wakeup_reason() {
   esp_sleep_wakeup_cause_t wakeup_reason;
@@ -59,45 +56,27 @@ void print_wakeup_reason() {
   GPIO14 = digitalRead(14);
   int IR_1 = digitalRead(32);
   int IR_2 = digitalRead(33);
-  Serial.println("IR 1 : ");
-  Serial.println(IR_1);
-  Serial.println("IR 2 : ");
-  Serial.println(IR_2);
-
   state = 0;
 
   if (GPIO14 == 1 && IR_1 == 1 && IR_2 == 1) {
-    Serial.println("Wake up goto Top");
     getWUL();
+    getData();
     while (state < 1) {
-      getData();
+      GPIO14 = digitalRead(14);
       int IR_1 = digitalRead(32);
       int IR_2 = digitalRead(33);
-      getVoltage();
-      if (checkVolt >= 4.00) {
-        PLState = 1;
-        SendAllData();
-        Moter_control();
-      } else {
-        Serial.println("Battery DOWN !!!");
-        PLState = 1;
-        SendAllData();
-        delay(1000);
-        Serial.println("Now Going to Sleep!");
-        Goto_sleep_now();
-      }
+      Moter_control();
     }
   } else if (GPIO14 == 1 && IR_1 == 0 && IR_2 == 0) {
-    Serial.println("Wake up stay on Top");
-    PLState = 1;
-    SendAllData();
-  } else {
-    Serial.println("Wake up stay DOWN");
-    getWUL();
-    getVoltage();
-    PLState = 1;
-    SendAllData();
     getData();
+  } else {
+    getData();
+    while (state < 1) {
+      GPIO14 = digitalRead(14);
+      int IR_1 = digitalRead(32);
+      int IR_2 = digitalRead(33);
+      Moter_control();
+    }
   }
 }
 
@@ -110,17 +89,9 @@ void print_GPIO_wake_up() {
 }
 
 void setup() {
-  //GPIO23 Trigger moter                       ////////////////////////////////
-  //  pinMode(23, OUTPUT);
-  //  digitalWrite(23, HIGH);
-  //  delay(1000);
-
   //Serial config
   Serial.begin(115200);
   Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
-
-  //Print the Pins that triggered to wake up.
-  print_GPIO_wake_up();
 
   //Ultrasonic pins
   pinMode(trigPin, OUTPUT);
@@ -144,6 +115,8 @@ void setup() {
   //Moter pins                                 ////////////////////////////////
   pinMode(19, OUTPUT);                         ////////////////////////////////
   pinMode(21, OUTPUT);                         ////////////////////////////////
+  //GPIO23 Trigger moter                       ////////////////////////////////
+  pinMode(23, OUTPUT);                         ////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
   //Increment boot number and print it every reboot
@@ -153,7 +126,8 @@ void setup() {
   //Print the wakeup reason for ESP32
   print_wakeup_reason();
 
-  getData();
+  //Print the Pins that triggered to wake up.
+  print_GPIO_wake_up();
 
   //Multi pins
   esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
@@ -173,44 +147,50 @@ void pushDataWUL () {
   Serial2.println(distance);
 }
 
-void pushStatePL () {
-  Serial2.println('D');
-}
-
-void SendAllData () {
-  String SendAll = 'V' + String(VP) + 'U' + String(distance) + 'S' + String(PLState) + '>';
-  Serial2.println(SendAll);
-}
-
 void getData () {
   if (Serial2.available() > 0) {
-    Serial.println("Wait command...");
     readChar = Serial2.read();
-    Serial.println(readChar);
-  }
-  if (readChar == 'S') {
+    Serial.println("Wait commnad...");
+    if (readChar == 'V') {
+      getVoltage();
+      pushDataV();
+    }
+
+    if (readChar == 'U') {
+      getWUL();
+      pushDataWUL();
+    }
+
+    if (readChar == 'S') {
       Goto_sleep_now();
+    }
   }
 }
 
 void loop() {
+  //Serial.println("Loop ! ! ! ");
+
+  //Multi pins
+  //esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
+
   getData();
   wait_command();
 
+  //GPIO14 = digitalRead(14);
+  //Moter_control();
+
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= 1000) {
+  if (currentMillis - previousMillis >= 500) {
     previousMillis = currentMillis;
     countLoop++;
   }
   if (triggeredPin == 2) {
-    getData();
     countLoop = 0;
   } else if (triggeredPin == 15) {
-    getData();
     countLoop = 0;
   }
 
-  if (countLoop >= 2) {
+  if (countLoop > 10) {
     Goto_sleep_now();
   }
 }
@@ -218,45 +198,26 @@ void loop() {
 void wait_command () {
   if (triggeredPin == 2) {
     getData();
-    unsigned long currentMillisBZ = millis();
-    if (currentMillisBZ - previousMillisBZ >= 500) {
-      previousMillisBZ = currentMillisBZ;
-      getData();
+
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= 500) {
+      previousMillis = currentMillis;
       digitalWrite(22, HIGH);
-      Serial.println("alert 1");
+      Serial.println("alert ");
     }
-    if (currentMillisBZ - previousMillisBZ02 >= 1000) {
-      previousMillisBZ02 = currentMillisBZ;
-      getData();
+    if (currentMillis - previousMillis >= 1000) {
+      previousMillis = currentMillis;
       digitalWrite(22, LOW);
-      Serial.println("alert 2");
-      TimeoutBZ++;
     }
-    if (currentMillisBZ - previousMillisBZ03 >= 5000) {
-      previousMillisBZ03 = currentMillisBZ;
-      getData();
-      digitalWrite(22, LOW);
-      Serial.println("alert 3");
-      TimeoutBZ++;
-    }
-
-    if (TimeoutBZ == 1) {
-      PLState = 1;
-      SendAllData();
-    }
-    
-    if (TimeoutBZ == 180) {
-      Goto_sleep_now();
-    }
-
   } else if (triggeredPin == 15) {
-    unsigned long currentMillisCount = millis();
-    if (currentMillisCount - previousMillisCount >= 1000) {
-      previousMillisCount = currentMillisCount;
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= 100) {
+      previousMillis = currentMillis;
       //Serial.println(count);
       count++;
     }
 
+    GPIO14 = digitalRead(14);
     int IR_1 = digitalRead(32);
     int IR_2 = digitalRead(33);
 
@@ -265,58 +226,22 @@ void wait_command () {
 
     if (GPIO14 == 1) {
       if (IR_1 == 0 && IR_2 == 0) {
-        getVoltage();
         getData();
-        digitalWrite(19, LOW);
-        digitalWrite(21, LOW);
       } else if (IR_1 == 1 && IR_2 == 0) {
-        getVoltage();
-        getData();
-        if (checkVolt >= 4.00) {
-          Moter_control();
-        } else {
-          Serial.println("Battery DOWN !!!");
-          PLState = 1;
-          SendAllData();
-          Serial.println("Now Going to Sleep!");
-          Goto_sleep_now();
-        }
+        Moter_control();
       } else if (IR_1 == 0 && IR_2 == 1) {
-        getData();
-        getVoltage();
-        if (checkVolt >= 4.00) {
-          Moter_control();
-        } else {
-          Serial.println("Battery DOWN !!!");
-          PLState = 1;
-          SendAllData();
-          Serial.println("Now Going to Sleep!");
-          Goto_sleep_now();
-        }
+        Moter_control();
       } else if (IR_1 == 1 && IR_2 == 1) {
         getWUL();
-        getVoltage();
-        getData();
-        if (checkVolt >= 4.00) {
-          Moter_control();
-        } else {
-          Serial.println("Battery DOWN !!!");
-          PLState = 1;
-          SendAllData();
-          Serial.println("Now Going to Sleep!");
-          Goto_sleep_now();
-        }
+        Moter_control();
       }
     } else {
       getWUL();
-      getVoltage();
       getData();
-      if (checkVolt >= 4.00) {
-        Moter_control();
-      }
+      Moter_control();
     }
 
-    if (count > 3) {
+    if (count > 100) {
       count = 0;
       Goto_sleep_now();
     }
@@ -326,10 +251,12 @@ void wait_command () {
 void Moter_control () {
   int IR_1 = digitalRead(32);
   int IR_2 = digitalRead(33);
-  Serial.println("IR 1 : ");
-  Serial.println(IR_1);
-  Serial.println("IR 2 : ");
-  Serial.println(IR_2);
+
+  // Trigger GPIO 23
+  digitalWrite(23, HIGH);
+  //  Serial.print(IR_1);
+  //  Serial.println(IR_2);
+
   if (GPIO14 == 1 && distance > 50) {
     se_a_s = 0;
   } else if (GPIO14 == 1 && distance < 50) {
@@ -362,6 +289,7 @@ void Moter_control () {
   } else {
     digitalWrite(19, LOW);
     digitalWrite(21, LOW);
+    digitalWrite(23, LOW);
     Serial.print(se_a);
     Serial.print(",");
     Serial.println(se_a_s);
@@ -371,8 +299,7 @@ void Moter_control () {
 
 void getVoltage () {
   VP = analogRead(36);
-  VP = (VP / 4095) * 6.6;
-  checkVolt = VP;
+  VP = (VP / 4096) * 6.6;
   Serial.print("Your battery voltage : ");
   Serial.print(VP);
   Serial.println("v");
@@ -400,9 +327,7 @@ void getWUL () {
 }
 
 void Goto_sleep_now () {
+  //Go to sleep now
   Serial.println("Going to sleep now");
-  PLState = 0;
-  SendAllData();
-  delay(2000);
   esp_deep_sleep_start();
 }
